@@ -59,6 +59,23 @@
 
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
 
+  /* Animated background */
+  #bg {
+    position: fixed; inset: 0; z-index: -1;
+    width: 100%; height: 100%; pointer-events: none;
+  }
+  .glow {
+    position: fixed; z-index: -2; pointer-events: none;
+    width: 70vmax; height: 70vmax; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-soft) 0%, transparent 65%);
+    opacity: .9; filter: blur(20px);
+  }
+  .glow.a { top: -30vmax; right: -25vmax; animation: drift-a 26s ease-in-out infinite alternate; }
+  .glow.b { bottom: -35vmax; left: -30vmax; animation: drift-b 32s ease-in-out infinite alternate; }
+  @keyframes drift-a { to { transform: translate(-8vmax, 10vmax) scale(1.1); } }
+  @keyframes drift-b { to { transform: translate(10vmax, -8vmax) scale(1.15); } }
+  @media (prefers-reduced-motion: reduce) { .glow { animation: none; } }
+
   /* Nav */
   nav {
     position: sticky; top: 0; z-index: 10;
@@ -215,6 +232,9 @@
 </style>
 </head>
 <body>
+<div class="glow a" aria-hidden="true"></div>
+<div class="glow b" aria-hidden="true"></div>
+<canvas id="bg" aria-hidden="true"></canvas>
 
 <nav>
   <div class="wrap">
@@ -524,7 +544,83 @@
       var next = current === 'dark' ? 'light' : 'dark';
       root.setAttribute('data-theme', next);
       try { localStorage.setItem('theme', next); } catch (e) {}
+      readColor();
     });
+
+    // Background: a slowly drifting network of nodes; occasional "packets" travel along links
+    var canvas = document.getElementById('bg');
+    var ctx = canvas.getContext('2d');
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var nodes = [], packets = [], w, h, dpr, color = '15,123,108', mouse = { x: -1e4, y: -1e4 };
+    var LINK = 150;
+
+    function readColor() {
+      var c = getComputedStyle(root).getPropertyValue('--accent').trim();
+      var m = c.match(/^#([0-9a-f]{6})$/i);
+      if (m) {
+        var n = parseInt(m[1], 16);
+        color = [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(',');
+      }
+    }
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColor);
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = innerWidth; h = innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var count = Math.min(80, Math.round(w * h / 16000));
+      while (nodes.length < count) nodes.push({
+        x: Math.random() * w, y: Math.random() * h,
+        vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3,
+        r: 1 + Math.random() * 1.6
+      });
+      nodes.length = count;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      var i, j, a, b, dx, dy, d;
+      for (i = 0; i < nodes.length; i++) {
+        a = nodes[i];
+        if (!reduce) {
+          a.x += a.vx; a.y += a.vy;
+          if (a.x < 0 || a.x > w) a.vx *= -1;
+          if (a.y < 0 || a.y > h) a.vy *= -1;
+          dx = a.x - mouse.x; dy = a.y - mouse.y; d = dx * dx + dy * dy;
+          if (d < 14400) { a.x += dx * .01; a.y += dy * .01; }
+        }
+        for (j = i + 1; j < nodes.length; j++) {
+          b = nodes[j];
+          dx = a.x - b.x; dy = a.y - b.y; d = Math.sqrt(dx * dx + dy * dy);
+          if (d < LINK) {
+            ctx.strokeStyle = 'rgba(' + color + ',' + (0.22 * (1 - d / LINK)) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+            if (!reduce && packets.length < 6 && Math.random() < 0.0004) packets.push({ a: a, b: b, t: 0 });
+          }
+        }
+        ctx.fillStyle = 'rgba(' + color + ',.45)';
+        ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.fill();
+      }
+      for (i = packets.length - 1; i >= 0; i--) {
+        var p = packets[i];
+        p.t += 0.012;
+        if (p.t >= 1) { packets.splice(i, 1); continue; }
+        var x = p.a.x + (p.b.x - p.a.x) * p.t, y = p.a.y + (p.b.y - p.a.y) * p.t;
+        ctx.fillStyle = 'rgba(' + color + ',.9)';
+        ctx.shadowColor = 'rgba(' + color + ',.9)'; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      if (!reduce && !document.hidden) requestAnimationFrame(draw);
+    }
+
+    addEventListener('resize', function () { resize(); if (reduce) draw(); });
+    addEventListener('mousemove', function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+    addEventListener('mouseout', function () { mouse.x = mouse.y = -1e4; });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && !reduce) requestAnimationFrame(draw); });
+    readColor(); resize(); draw();
   })();
 </script>
 </body>
