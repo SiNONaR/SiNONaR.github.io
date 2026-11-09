@@ -547,20 +547,30 @@
       readColor();
     });
 
-    // Background: a slowly drifting network of nodes; occasional "packets" travel along links
+    // Background: a rotating dot-matrix globe with animated "attack" arcs between cities.
+    // Purely decorative: arcs are random, not real threat data.
     var canvas = document.getElementById('bg');
     var ctx = canvas.getContext('2d');
     var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var nodes = [], packets = [], w, h, dpr, color = '15,123,108', mouse = { x: -1e4, y: -1e4 };
-    var LINK = 150;
+    var w, h, dpr, cx, cy, R, dark = false, color = '15,123,108';
+    var land = [], arcs = [], rings = [], lambda = -1.2, PHI = 0.38, running = false, lastSpawn = 0;
+    var RAD = Math.PI / 180;
+    var PALETTE = ['ACCENT', '255,77,109', '255,181,71', '139,123,255'];
+    var HUBS = [[-74,40.7],[-87.6,41.9],[-122.4,37.8],[-118.2,34],[-79.4,43.7],[-99.1,19.4],[-46.6,-23.5],
+      [-0.1,51.5],[8.7,50.1],[4.9,52.4],[18,59.3],[37.6,55.8],[74.6,42.9],[76.9,43.2],[29,41],[55.3,25.2],
+      [72.9,19.1],[103.8,1.35],[114.2,22.3],[116.4,39.9],[127,37.6],[139.7,35.7],[151.2,-33.9],[28,-26.2],
+      [3.4,6.5],[106.8,-6.2]];
 
     function readColor() {
-      var c = getComputedStyle(root).getPropertyValue('--accent').trim();
-      var m = c.match(/^#([0-9a-f]{6})$/i);
+      var cs = getComputedStyle(root);
+      var m = cs.getPropertyValue('--accent').trim().match(/^#([0-9a-f]{6})$/i);
       if (m) {
         var n = parseInt(m[1], 16);
         color = [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(',');
       }
+      var b = cs.getPropertyValue('--bg').trim().match(/^#([0-9a-f]{6})$/i);
+      dark = b ? parseInt(b[1].slice(0, 2), 16) < 80 : false;
+      if (reduce) frame(performance.now());
     }
     matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColor);
 
@@ -569,58 +579,157 @@
       w = innerWidth; h = innerHeight;
       canvas.width = w * dpr; canvas.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var count = Math.min(80, Math.round(w * h / 16000));
-      while (nodes.length < count) nodes.push({
-        x: Math.random() * w, y: Math.random() * h,
-        vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3,
-        r: 1 + Math.random() * 1.6
+      if (w > 900) { R = Math.min(w * 0.3, h * 0.46); cx = w - R * 1.05; cy = h * 0.52; }
+      else { R = Math.min(w, h) * 0.46; cx = w / 2; cy = h * 0.6; }
+    }
+
+    // unit vector for lon/lat in degrees
+    function vec(lon, lat) {
+      var l = lon * RAD, p = lat * RAD;
+      return [Math.cos(p) * Math.sin(l), Math.sin(p), Math.cos(p) * Math.cos(l)];
+    }
+    // apply the current spin and tilt, scale to radius r; z > 0 faces the viewer
+    function view(v, r) {
+      var c = Math.cos(lambda), s = Math.sin(lambda);
+      var x = v[0] * c - v[2] * s, z0 = v[0] * s + v[2] * c, y0 = v[1];
+      var y = y0 * Math.cos(PHI) - z0 * Math.sin(PHI);
+      var z = z0 * Math.cos(PHI) + y0 * Math.sin(PHI);
+      return [x * r, y * r, z * r];
+    }
+
+    // Rasterize land onto a small equirectangular mask, then keep grid points that fall on land
+    function buildLand(geo) {
+      var mw = 720, mh = 360, m = document.createElement('canvas');
+      m.width = mw; m.height = mh;
+      var g = m.getContext('2d');
+      g.fillStyle = '#000';
+      geo.features.forEach(function (f) {
+        var polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+        polys.forEach(function (poly) {
+          g.beginPath();
+          poly.forEach(function (ring) {
+            ring.forEach(function (pt, i) {
+              var x = (pt[0] + 180) * 2, y = (90 - pt[1]) * 2;
+              if (i) g.lineTo(x, y); else g.moveTo(x, y);
+            });
+            g.closePath();
+          });
+          g.fill('evenodd');
+        });
       });
-      nodes.length = count;
+      var data = g.getImageData(0, 0, mw, mh).data, step = 1.6;
+      for (var lat = -56; lat <= 82; lat += step) {
+        var ls = step / Math.max(Math.cos(lat * RAD), 0.2);
+        for (var lon = -180; lon < 180; lon += ls) {
+          var px = Math.floor((lon + 180) * 2), py = Math.floor((90 - lat) * 2);
+          if (data[(py * mw + px) * 4 + 3] > 0) land.push(vec(lon, lat));
+        }
+      }
     }
 
-    function draw() {
+    function spawn() {
+      var a = HUBS[Math.floor(Math.random() * HUBS.length)], b;
+      do { b = HUBS[Math.floor(Math.random() * HUBS.length)]; } while (b === a);
+      var A = vec(a[0], a[1]), B = vec(b[0], b[1]);
+      var om = Math.acos(Math.max(-1, Math.min(1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2])));
+      arcs.push({ A: A, B: B, om: om, t: 0, speed: 0.006 + Math.random() * 0.004,
+        c: PALETTE[Math.floor(Math.random() * PALETTE.length)] });
+    }
+    // point along the great circle, lifted above the surface in the middle
+    function arcPoint(arc, t) {
+      var so = Math.sin(arc.om), k1 = Math.sin((1 - t) * arc.om) / so, k2 = Math.sin(t * arc.om) / so;
+      var lift = 1 + Math.sin(Math.PI * t) * (0.08 + arc.om * 0.12);
+      return view([arc.A[0] * k1 + arc.B[0] * k2, arc.A[1] * k1 + arc.B[1] * k2, arc.A[2] * k1 + arc.B[2] * k2], R * lift);
+    }
+    function seen(p) { return p[2] > 0 || p[0] * p[0] + p[1] * p[1] > R * R; }
+
+    function frame(now) {
       ctx.clearRect(0, 0, w, h);
-      var i, j, a, b, dx, dy, d;
-      for (i = 0; i < nodes.length; i++) {
-        a = nodes[i];
-        if (!reduce) {
-          a.x += a.vx; a.y += a.vy;
-          if (a.x < 0 || a.x > w) a.vx *= -1;
-          if (a.y < 0 || a.y > h) a.vy *= -1;
-          dx = a.x - mouse.x; dy = a.y - mouse.y; d = dx * dx + dy * dy;
-          if (d < 14400) { a.x += dx * .01; a.y += dy * .01; }
-        }
-        for (j = i + 1; j < nodes.length; j++) {
-          b = nodes[j];
-          dx = a.x - b.x; dy = a.y - b.y; d = Math.sqrt(dx * dx + dy * dy);
-          if (d < LINK) {
-            ctx.strokeStyle = 'rgba(' + color + ',' + (0.22 * (1 - d / LINK)) + ')';
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-            if (!reduce && packets.length < 6 && Math.random() < 0.0004) packets.push({ a: a, b: b, t: 0 });
+      if (!land.length) return;
+      var k = dark ? 1 : 0.75, i;
+
+      // sphere body and rim
+      var grad = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.1, cx, cy, R);
+      grad.addColorStop(0, 'rgba(' + color + ',' + 0.10 * k + ')');
+      grad.addColorStop(1, 'rgba(' + color + ',' + 0.02 * k + ')');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(' + color + ',' + 0.25 * k + ')';
+      ctx.lineWidth = 1; ctx.stroke();
+
+      // land dots, fading toward the edge
+      for (i = 0; i < land.length; i++) {
+        var p = view(land[i], R);
+        if (p[2] <= 0) continue;
+        ctx.fillStyle = 'rgba(' + color + ',' + ((0.15 + 0.55 * p[2] / R) * k).toFixed(3) + ')';
+        ctx.fillRect(cx + p[0] - 0.8, cy - p[1] - 0.8, 1.6, 1.6);
+      }
+
+      // arcs
+      if (!reduce && now - lastSpawn > 420 && arcs.length < 14) { spawn(); lastSpawn = now; }
+      for (i = arcs.length - 1; i >= 0; i--) {
+        var arc = arcs[i], c = arc.c === 'ACCENT' ? color : arc.c;
+        if (!reduce) arc.t += arc.speed;
+        var head = Math.min(arc.t, 1), tail = Math.max(0, arc.t - 0.45);
+        if (tail >= 1) { arcs.splice(i, 1); continue; }
+        ctx.lineWidth = 1.4;
+        var prev = null;
+        for (var s = 0; s <= 24; s++) {
+          var q = arcPoint(arc, tail + (head - tail) * s / 24);
+          if (prev && seen(q) && seen(prev)) {
+            ctx.strokeStyle = 'rgba(' + c + ',' + (0.9 * k * s / 24).toFixed(3) + ')';
+            ctx.beginPath(); ctx.moveTo(cx + prev[0], cy - prev[1]); ctx.lineTo(cx + q[0], cy - q[1]); ctx.stroke();
           }
+          prev = q;
         }
-        ctx.fillStyle = 'rgba(' + color + ',.45)';
-        ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.fill();
+        if (arc.t < 1 && seen(prev)) {
+          ctx.fillStyle = 'rgba(' + c + ',' + k + ')';
+          ctx.beginPath(); ctx.arc(cx + prev[0], cy - prev[1], 2, 0, Math.PI * 2); ctx.fill();
+        }
+        if (arc.t >= 1 && !arc.hit) { arc.hit = true; rings.push({ v: arc.B, r: 0, c: c }); }
       }
-      for (i = packets.length - 1; i >= 0; i--) {
-        var p = packets[i];
-        p.t += 0.012;
-        if (p.t >= 1) { packets.splice(i, 1); continue; }
-        var x = p.a.x + (p.b.x - p.a.x) * p.t, y = p.a.y + (p.b.y - p.a.y) * p.t;
-        ctx.fillStyle = 'rgba(' + color + ',.9)';
-        ctx.shadowColor = 'rgba(' + color + ',.9)'; ctx.shadowBlur = 8;
-        ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
+
+      // impact rings at the target
+      for (i = rings.length - 1; i >= 0; i--) {
+        var rg = rings[i], p2 = view(rg.v, R);
+        rg.r += 0.35;
+        if (rg.r > 14) { rings.splice(i, 1); continue; }
+        if (p2[2] <= 0) continue;
+        ctx.strokeStyle = 'rgba(' + rg.c + ',' + ((1 - rg.r / 14) * k).toFixed(3) + ')';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(cx + p2[0], cy - p2[1], rg.r, 0, Math.PI * 2); ctx.stroke();
       }
-      if (!reduce && !document.hidden) requestAnimationFrame(draw);
+
+      if (!reduce) lambda += 0.0016;
     }
 
-    addEventListener('resize', function () { resize(); if (reduce) draw(); });
-    addEventListener('mousemove', function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
-    addEventListener('mouseout', function () { mouse.x = mouse.y = -1e4; });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && !reduce) requestAnimationFrame(draw); });
-    readColor(); resize(); draw();
+    function loop(now) {
+      if (document.hidden) { running = false; return; }
+      frame(now);
+      requestAnimationFrame(loop);
+    }
+    function start() {
+      if (reduce) { frame(performance.now()); return; }
+      if (!running) { running = true; requestAnimationFrame(loop); }
+    }
+
+    addEventListener('resize', function () { resize(); if (reduce) frame(performance.now()); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) start(); });
+    readColor(); resize();
+
+    var tj = document.createElement('script');
+    tj.src = 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
+    tj.onload = function () {
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')
+        .then(function (r) { return r.json(); })
+        .then(function (topo) {
+          buildLand(topojson.feature(topo, topo.objects.land));
+          if (reduce) { for (var i = 0; i < 6; i++) { spawn(); arcs[i].t = 0.8; } }
+          start();
+        })
+        .catch(function () {});
+    };
+    document.head.appendChild(tj);
   })();
 </script>
 </body>
