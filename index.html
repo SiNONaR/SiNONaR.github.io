@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nursultan Kerimkulov — Cybersecurity</title>
+<meta name="description" content="Nursultan Kerimkulov — entry-level SOC / security analyst. Home lab with Suricata IDS, Kubernetes and local LLM alert triage; Wazuh SIEM internship.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --text: #14181f;
+    --muted: #5b6472;
+    --border: #e2e5ea;
+    --accent: #0f7b6c;
+    --accent-soft: #e3f3f0;
+    --chip: #eef0f3;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1117;
+      --surface: #151b23;
+      --text: #e6e9ee;
+      --muted: #9aa4b2;
+      --border: #263040;
+      --accent: #3fc1a8;
+      --accent-soft: #12302b;
+      --chip: #1e2631;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117;
+    --surface: #151b23;
+    --text: #e6e9ee;
+    --muted: #9aa4b2;
+    --border: #263040;
+    --accent: #3fc1a8;
+    --accent-soft: #12302b;
+    --chip: #1e2631;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+
+  /* Nav */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+  nav .brand { font-weight: 700; color: var(--text); margin-right: auto; white-space: nowrap; }
+  nav .links { display: flex; gap: 18px; overflow-x: auto; scrollbar-width: none; }
+  nav .links a { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  nav .links a:hover { color: var(--text); text-decoration: none; }
+  #theme {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 8px; width: 34px; height: 34px; cursor: pointer; flex: none;
+  }
+
+  /* Hero */
+  header.hero { padding: 72px 0 48px; }
+  .eyebrow { color: var(--accent); font-size: 14px; letter-spacing: .02em; }
+  h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; margin: 10px 0 16px; letter-spacing: -.02em; }
+  .lead { font-size: 1.125rem; color: var(--muted); max-width: 680px; margin: 0 0 28px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border-radius: 10px; font-weight: 500; font-size: 15px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  }
+  .btn:hover { text-decoration: none; border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  :root[data-theme="dark"] .btn.primary { color: #06201b; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #06201b; } }
+  .meta { margin-top: 20px; color: var(--muted); font-size: 14px; }
+
+  /* Sections */
+  section { padding: 40px 0; border-top: 1px solid var(--border); scroll-margin-top: 56px; }
+  h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--muted); margin: 0 0 24px; font-weight: 600;
+  }
+  h3 { font-size: 1.15rem; margin: 0 0 4px; letter-spacing: -.01em; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 16px; }
+  .card .sub { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  ul.points { margin: 0; padding-left: 20px; }
+  ul.points li { margin: 6px 0; }
+  ul.points li::marker { color: var(--accent); }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .tag {
+    font: 500 12px/1 "JetBrains Mono", ui-monospace, monospace;
+    background: var(--chip); color: var(--muted);
+    padding: 6px 8px; border-radius: 6px;
+  }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+  .stat { background: var(--accent-soft); border-radius: 10px; padding: 14px; }
+  .stat b { display: block; font-size: 1.35rem; letter-spacing: -.02em; }
+  .stat span { font-size: 13px; color: var(--muted); }
+
+  /* Pipeline */
+  .pipeline { display: flex; align-items: stretch; gap: 8px; margin: 4px 0 20px; }
+  .step {
+    flex: 1; border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; background: var(--bg); min-width: 0;
+  }
+  .step .n { font-size: 11px; color: var(--accent); }
+  .step b { display: block; font-size: 14px; }
+  .step span { display: block; font-size: 12px; color: var(--muted); }
+  .arrow { align-self: center; color: var(--muted); flex: none; }
+
+  /* Skills */
+  .skills { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .skills .card + .card { margin-top: 0; }
+  .skills h3 { font-size: 1rem; margin-bottom: 10px; }
+  .skills .tags { margin-top: 0; }
+
+  /* Experience / education rows */
+  .row-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .date { color: var(--muted); font-size: 14px; white-space: nowrap; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .two .card + .card { margin-top: 0; }
+  .plain { list-style: none; margin: 0; padding: 0; }
+  .plain li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .plain li:last-child { border-bottom: 0; }
+  .plain small { display: block; color: var(--muted); }
+
+  /* Internship details */
+  h4.minor {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--muted); margin: 28px 0 12px; font-weight: 600;
+  }
+  ol.timeline { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--border); }
+  ol.timeline li { position: relative; display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 0 0 16px 18px; }
+  ol.timeline li::before {
+    content: ""; position: absolute; left: -6px; top: 6px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  }
+  ol.timeline li > span { font-size: 13px; color: var(--accent); padding-top: 2px; }
+  ol.timeline b { display: block; }
+  ol.timeline div { font-size: 15px; color: var(--muted); }
+  ol.timeline div b { color: var(--text); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 620px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--bg); }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  .runbook { border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: var(--bg); }
+  .runbook ol { margin: 8px 0 0; padding-left: 20px; font-size: 14px; }
+  .runbook li { margin: 5px 0; }
+  .runbook li::marker { color: var(--accent); font-weight: 600; }
+
+  .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .gallery figure { margin: 0; }
+  .gallery a { display: block; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
+  .gallery img { display: block; width: 100%; height: 220px; object-fit: cover; object-position: top left; }
+  .gallery img.fit { object-fit: contain; object-position: center; padding: 12px; }
+  .gallery a:hover { border-color: var(--accent); }
+  .gallery figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  /* Contact */
+  .contact-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .contact-list a {
+    display: block; padding: 16px; border: 1px solid var(--border);
+    border-radius: 12px; background: var(--surface); color: var(--text);
+  }
+  .contact-list a:hover { border-color: var(--accent); text-decoration: none; }
+  .contact-list small { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+  .contact-list span { font-size: 14px; word-break: break-all; }
+
+  footer { padding: 32px 0 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 720px) {
+    nav .links { display: none; }
+    header.hero { padding: 48px 0 36px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .pipeline { flex-direction: column; }
+    .arrow { transform: rotate(90deg); }
+    .skills, .two, .contact-list { grid-template-columns: 1fr; }
+    .card { padding: 18px; }
+    ol.timeline li { grid-template-columns: 1fr; gap: 2px; }
+    .gallery { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">N. Kerimkulov</a>
+    <div class="links">
+      <a href="#projects">Projects</a>
+      <a href="#experience">Experience</a>
+      <a href="#skills">Skills</a>
+      <a href="#education">Education</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <button id="theme" aria-label="Toggle color theme" title="Toggle theme">◐</button>
+  </div>
+</nav>
+
+<main class="wrap" id="top">
+
+  <header class="hero">
+    <div class="eyebrow mono">$ whoami</div>
+    <h1>Nursultan Kerimkulov</h1>
+    <p class="lead">
+      Cybersecurity candidate with hands-on experience in SIEM deployment (Wazuh, Sysmon),
+      network intrusion detection (Suricata) and Python security tooling. I build and run a
+      segmented home lab where a locally hosted LLM triages the IDS alerts every day.
+      Looking for an entry-level <strong>SOC / security analyst</strong> role.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="mailto:nkerimkulov@gmail.com">Email me</a>
+      <a class="btn" href="https://www.linkedin.com/in/nkerimkulov" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn" href="https://github.com/SiNONaR" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="meta">Chicago, IL · B.S. Computer &amp; Information Science, May 2026</div>
+  </header>
+
+  <section id="projects">
+    <h2>Projects</h2>
+
+    <article class="card">
+      <h3>Home Lab: Segmented Network, Kubernetes and IDS with Local LLM Triage</h3>
+      <div class="sub">Personal project · ongoing</div>
+
+      <div class="stats">
+        <div class="stat"><b>~53,000</b><span>Suricata rules (ET Open)</span></div>
+        <div class="stat"><b>~6,000</b><span>alerts per day</span></div>
+        <div class="stat"><b>~99%</b><span>noise auto-labeled</span></div>
+        <div class="stat"><b>&lt;0.1%</b><span>packet loss on mirror port</span></div>
+      </div>
+
+      <div class="pipeline" aria-label="Daily alert triage pipeline">
+        <div class="step"><span class="n mono">01</span><b>Suricata IDS</b><span>mirrored switch port</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><span class="n mono">02</span><b>Python aggregator</b><span>label noise, group by signature</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><span class="n mono">03</span><b>Local LLM</b><span>Ollama, verdict per group</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><span class="n mono">04</span><b>Daily report</b><span>systemd timer, unattended</span></div>
+      </div>
+
+      <ul class="points">
+        <li>Built a segmented network on TP-Link Omada (router, managed switch, access point) with separate Users and Admin VLANs, inter-VLAN ACLs and WPA2-Enterprise authentication through FreeRADIUS.</li>
+        <li>Deployed a three-node kubeadm Kubernetes cluster (control plane, worker, GPU node) with Prometheus and Grafana monitoring and ntopng traffic analysis.</li>
+        <li>Ran Suricata 8 on a mirrored switch port with systemd-managed NIC settings and log rotation.</li>
+        <li>Wrote a Python aggregator that labels known noise and groups the rest by signature with direction, ports and a “new today” flag.</li>
+        <li>The LLM gives a verdict per alert group, while code computes every number and never lets attack signatures be marked benign. A single-command SSH key keeps the job limited.</li>
+        <li>Compared three local models on real alert data and chose the most conservative one.</li>
+        <li>Detected a newly exposed public web server (inbound scanning, HTTP status checks) sitting in the Admin VLAN, which led to a planned DMZ VLAN.</li>
+      </ul>
+      <div class="tags">
+        <span class="tag">Suricata</span><span class="tag">Python</span><span class="tag">Ollama</span>
+        <span class="tag">Kubernetes</span><span class="tag">Prometheus</span><span class="tag">Grafana</span>
+        <span class="tag">ntopng</span><span class="tag">FreeRADIUS</span><span class="tag">VLANs / ACLs</span>
+      </div>
+    </article>
+
+    <article class="card">
+      <h3>Python Network Reconnaissance Toolkit</h3>
+      <div class="sub">Personal project</div>
+      <ul class="points">
+        <li>Built an Nmap-inspired port scanner: TCP scanning with timeouts, banner grabbing and service identification over sockets.</li>
+        <li>Developed a ping-sweep tool to discover live hosts in a subnet, applying Layer 2 and Layer 3 concepts.</li>
+        <li>Analyzed exposed services to assess potential security risks.</li>
+      </ul>
+      <div class="tags"><span class="tag">Python</span><span class="tag">sockets</span><span class="tag">TCP/IP</span></div>
+    </article>
+
+    <article class="card">
+      <h3>Log Analysis and Brute-Force Detection Tool</h3>
+      <div class="sub">Personal project</div>
+      <ul class="points">
+        <li>Developed a Python tool that parses Linux authentication logs and detects brute-force attempts from repeated failed logins.</li>
+        <li>Summarized suspicious IP addresses and timestamps using SOC-style log monitoring methods.</li>
+      </ul>
+      <div class="tags"><span class="tag">Python</span><span class="tag">Linux auth logs</span><span class="tag">detection</span></div>
+    </article>
+  </section>
+
+  <section id="experience">
+    <h2>Experience</h2>
+    <article class="card">
+      <div class="row-head">
+        <h3>Cybersecurity Intern</h3>
+        <span class="date mono">01/2026 – 04/2026</span>
+      </div>
+      <div class="sub">National Louis University · Chicago, IL</div>
+      <ul class="points">
+        <li>Deployed and configured a Wazuh SIEM server in a controlled university lab and managed Wazuh agents on Windows and Linux endpoints.</li>
+        <li>Deployed Sysmon for endpoint telemetry and integrated its logs into Wazuh for centralized monitoring.</li>
+        <li>Built and tuned detections for encoded PowerShell, scheduled-task persistence and repeated failed logons; wrote custom rules in <span class="mono">local_rules.xml</span> and debugged them with <span class="mono">wazuh-logtest</span>.</li>
+        <li>Ran safe attack simulations to validate every detection end to end (<span class="mono">alerts.json</span> → Wazuh Dashboard) and mapped observed behavior to MITRE ATT&amp;CK.</li>
+        <li>Triaged the resulting alerts the way a Tier-1 analyst would and wrote step-by-step runbooks for them.</li>
+        <li>Documented the lab architecture, detection matrix and triage procedures as the final deliverable.</li>
+      </ul>
+
+      <h4 class="minor">How the internship went</h4>
+      <ol class="timeline">
+        <li><span class="mono">Setup</span><div><b>SIEM and telemetry</b>Installed Wazuh Manager and agents in a virtual lab, added Sysmon, and fixed setup and log-collection errors along the way.</div></li>
+        <li><span class="mono">Week 6</span><div><b>Attack simulation</b>Created a scheduled task with <span class="mono">schtasks</span> (Event 4698) and generated repeated failed logons (Event 4625); confirmed Wazuh alerted on both. Fixed broken regex, <span class="mono">&lt;if_sid&gt;</span> rule chaining and XML errors that stopped the manager from restarting.</div></li>
+        <li><span class="mono">Weeks 7–8</span><div><b>Alerting and ATT&amp;CK mapping</b>Configured dashboard alerts and monitoring for all three detections, added the encoded PowerShell scenario, and reviewed each rule's groups, fields and technique mapping.</div></li>
+        <li><span class="mono">Week 9</span><div><b>Alert triage</b>Investigated each alert: command line, parent process and user; task name, schedule and creating process; attempt count, target account and source. Also tried to onboard a mobile device as a new endpoint and worked through agent and connectivity limits.</div></li>
+        <li><span class="mono">Week 10</span><div><b>Final deliverables</b>Detection matrix, three written alert analyses and two triage runbooks.</div></li>
+      </ol>
+
+      <h4 class="minor">Detection matrix</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Detection</th><th>Log source</th><th>Indicator</th><th>Wazuh rule</th><th>MITRE ATT&amp;CK</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Encoded PowerShell</b></td>
+              <td>Sysmon Event ID 1</td>
+              <td><span class="mono">powershell.exe -EncodedCommand</span></td>
+              <td class="mono">92057</td>
+              <td><span class="mono">T1059.001</span> PowerShell</td>
+            </tr>
+            <tr>
+              <td><b>Scheduled task creation</b></td>
+              <td>Windows Security 4698</td>
+              <td>New scheduled task</td>
+              <td class="mono">60228</td>
+              <td><span class="mono">T1053.005</span> Scheduled Task</td>
+            </tr>
+            <tr>
+              <td><b>Multiple failed logons</b></td>
+              <td>Windows Security 4625</td>
+              <td>Repeated logon failures</td>
+              <td class="mono">60122</td>
+              <td><span class="mono">T1110</span> Brute Force</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 class="minor">Triage runbooks</h4>
+      <div class="two runbooks">
+        <div class="runbook">
+          <b>Encoded PowerShell execution</b>
+          <ol>
+            <li>Confirm <span class="mono">powershell.exe</span> with <span class="mono">-EncodedCommand</span>; record time, host, user and parent process.</li>
+            <li>Decode the Base64 payload and work out what it does (runs scripts, downloads files, changes settings).</li>
+            <li>Look for child processes, <span class="mono">IEX</span> / <span class="mono">Invoke-Expression</span> or chained commands that point to a multi-stage attack.</li>
+            <li>Check context: is this user or script expected to do this, and on what kind of system?</li>
+            <li>Look for related activity: more PowerShell, outbound connections, new scheduled tasks or registry changes.</li>
+            <li>Escalate if it is unexpected; mark it informational if it is authorized administration or testing.</li>
+          </ol>
+        </div>
+        <div class="runbook">
+          <b>Multiple failed logons</b>
+          <ol>
+            <li>Pull Event ID 4625 and count attempts in the time window.</li>
+            <li>Identify the source and whether it targets one account or many.</li>
+            <li>Check for a successful logon (Event ID 4624) after the failures.</li>
+            <li>Compare the timing and pattern with this user's or system's normal behavior.</li>
+            <li>Escalate or block the source if it looks malicious; mark it informational if it was user error.</li>
+          </ol>
+        </div>
+      </div>
+
+      <h4 class="minor">From the lab</h4>
+      <div class="gallery">
+        <figure>
+          <a href="img/wazuh-triggered-alerts.png" target="_blank"><img class="fit" src="img/wazuh-triggered-alerts.png" alt="Wazuh alerting: triggered alerts for Suspicious Scheduled Task, Encoded PowerShell and Failed Logon 4625 monitors" loading="lazy"></a>
+          <figcaption>All three monitors firing during the attack simulations: scheduled task, encoded PowerShell and failed logons.</figcaption>
+        </figure>
+        <figure>
+          <a href="img/wazuh-failed-logon-trigger.png" target="_blank"><img src="img/wazuh-failed-logon-trigger.png" alt="Wazuh monitor trigger for Event ID 4625 with threshold above 4 per hour" loading="lazy"></a>
+          <figcaption>Failed-logon monitor: severity High when Event 4625 count goes above 4 in an hour. The simulated brute force crosses the threshold.</figcaption>
+        </figure>
+        <figure>
+          <a href="img/wazuh-scheduled-task-monitor.png" target="_blank"><img src="img/wazuh-scheduled-task-monitor.png" alt="Wazuh monitor query filtering Windows Event IDs 4698 and 4702" loading="lazy"></a>
+          <figcaption>Scheduled-task monitor: any task created (4698) or updated (4702) in the last minute raises a High alert.</figcaption>
+        </figure>
+        <figure>
+          <a href="img/wazuh-alert-mitre-mapping.png" target="_blank"><img src="img/wazuh-alert-mitre-mapping.png" alt="Wazuh Discover view of a Sysmon alert mapped to MITRE T1570" loading="lazy"></a>
+          <figcaption>Reading a Sysmon alert in Discover: rule, groups and the MITRE ATT&amp;CK mapping (here T1570).</figcaption>
+        </figure>
+      </div>
+
+      <div class="tags"><span class="tag">Wazuh</span><span class="tag">Sysmon</span><span class="tag">Windows Event Logs</span><span class="tag">MITRE ATT&amp;CK</span><span class="tag">wazuh-logtest</span><span class="tag">alert triage</span><span class="tag">runbooks</span></div>
+    </article>
+  </section>
+
+  <section id="skills">
+    <h2>Skills</h2>
+    <div class="skills">
+      <div class="card">
+        <h3>Security</h3>
+        <div class="tags">
+          <span class="tag">Wazuh SIEM</span><span class="tag">Sysmon</span><span class="tag">Suricata IDS</span>
+          <span class="tag">MITRE ATT&amp;CK</span><span class="tag">log analysis</span>
+          <span class="tag">incident response</span><span class="tag">risk assessment</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Networking</h3>
+        <div class="tags">
+          <span class="tag">TCP/IP</span><span class="tag">VLANs</span><span class="tag">ACLs</span>
+          <span class="tag">firewalls</span><span class="tag">VPN</span><span class="tag">FreeRADIUS</span>
+          <span class="tag">port mirroring</span><span class="tag">ntopng</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Systems</h3>
+        <div class="tags">
+          <span class="tag">Linux</span><span class="tag">Docker</span><span class="tag">Kubernetes</span>
+          <span class="tag">systemd</span><span class="tag">Prometheus</span><span class="tag">Grafana</span><span class="tag">SQL</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Programming</h3>
+        <div class="tags">
+          <span class="tag">Python</span><span class="tag">PyTorch</span><span class="tag">Ollama (local LLMs)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="education">
+    <h2>Education &amp; Certifications</h2>
+    <div class="two">
+      <div class="card">
+        <h3>B.S. Computer and Information Science</h3>
+        <div class="sub">National Louis University</div>
+        <ul class="plain">
+          <li>Graduated May 2026</li>
+          <li>GPA 3.56</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Certifications</h3>
+        <ul class="plain">
+          <li><a href="https://coursera.org/verify/professional-cert/74ENDDBBP5MA" target="_blank" rel="noopener">Google Cybersecurity Professional Certificate</a><small>Google · Coursera · Nov 2025 · 8 courses, incl. SIEM, IDS, Linux, SQL, Python</small></li>
+          <li>NASA's Open Science<small>NASA</small></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <div class="contact-list">
+      <a href="mailto:nkerimkulov@gmail.com"><small>Email</small><span>nkerimkulov@gmail.com</span></a>
+      <a href="https://www.linkedin.com/in/nkerimkulov" target="_blank" rel="noopener"><small>LinkedIn</small><span>in/nkerimkulov</span></a>
+      <a href="https://github.com/SiNONaR" target="_blank" rel="noopener"><small>GitHub</small><span>SiNONaR</span></a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Nursultan Kerimkulov · Chicago, IL</div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('theme').addEventListener('click', function () {
+      var current = root.getAttribute('data-theme') ||
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>
