@@ -179,6 +179,8 @@
   .runbook li { margin: 5px 0; }
   .runbook li::marker { color: var(--accent); font-weight: 600; }
 
+  p.note { margin: 0; font-size: 15px; color: var(--muted); }
+  p.note + .table-wrap, .table-wrap + p.note { margin-top: 12px; }
   .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .gallery figure { margin: 0; }
   .gallery a { display: block; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
@@ -252,7 +254,7 @@
 
     <article class="card">
       <h3>Home Lab: Segmented Network, Kubernetes and IDS with Local LLM Triage</h3>
-      <div class="sub">Personal project · ongoing</div>
+      <div class="sub">Built with a teammate · documented as a build log with a troubleshooting file for every step · ongoing</div>
 
       <div class="stats">
         <div class="stat"><b>~53,000</b><span>Suricata rules (ET Open)</span></div>
@@ -279,7 +281,29 @@
         <li>The LLM gives a verdict per alert group, while code computes every number and never lets attack signatures be marked benign. A single-command SSH key keeps the job limited.</li>
         <li>Compared three local models on real alert data and chose the most conservative one.</li>
         <li>Detected a newly exposed public web server (inbound scanning, HTTP status checks) sitting in the Admin VLAN, which led to a planned DMZ VLAN.</li>
+        <li>Set up the GPU laptop as a Kubernetes worker: NVIDIA Container Toolkit, containerd runtime and the NVIDIA device plugin, so pods can use the GPU.</li>
       </ul>
+
+      <h4 class="minor">Design rule: code computes, the model only narrates</h4>
+      <p class="note">Early tests showed every small local model corrupting or inventing numbers it was asked to copy. So the model never touches a number: code parses, counts and groups the alerts; the model gets numbered rows and returns strict JSON (<span class="mono">id</span>, <span class="mono">verdict</span>, one-line <span class="mono">reason</span>); code validates the answer, applies safety rules and writes the report.</p>
+
+      <h4 class="minor">Choosing the model (30-day summary, 40 rows, 4 GB GPU)</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Model</th><th>Time</th><th>Suspicious / worth a look / benign</th><th>What happened</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">qwen2.5:3b</td><td>24 s</td><td>2 / 34 / 4</td><td>Fast, but rated HeartBleed only “worth a look” and flagged a file-hosting domain as suspicious</td></tr>
+            <tr><td class="mono">phi4-mini</td><td>33 s</td><td>21 / 5 / 14</td><td>Alarmist and inconsistent; flagged everything already triaged by hand</td></tr>
+            <tr><td class="mono"><b>gemma3:4b</b> ✓</td><td>69 s</td><td>2 / 33 / 5</td><td>Most restrained: “suspicious” only on the two real attack-style rows (HeartBleed, Zmap scan)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Honest result: the value is mostly in the code around the model: noise removal, new-today and priority flags, mechanical checks of server responses, and a guard against calling attacks benign. The model adds a plain-language reason per row; it is not the decision maker.</p>
+
+      <h4 class="minor">Case study: from IDS alert to network redesign</h4>
+      <p class="note">Within hours of opening ports 80/443 for a public site, the IDS showed reputation-list sources, a GraphQL introspection probe and requests for <span class="mono">/.env</span>, <span class="mono">phpinfo</span> and <span class="mono">wp-config</span> backups. All got <span class="mono">404</span>, but the site answered from the Admin VLAN, so anything that got through would start inside the trusted segment. The DMZ plan that followed notes a trap: moving only the public IP to a new VLAN looks like a DMZ on a diagram but isn't one, because the pod still runs on an Admin-VLAN node. Real isolation means moving the node that handles untrusted input.</p>
       <div class="tags">
         <span class="tag">Suricata</span><span class="tag">Python</span><span class="tag">Ollama</span>
         <span class="tag">Kubernetes</span><span class="tag">Prometheus</span><span class="tag">Grafana</span>
