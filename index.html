@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nursultan Kerimkulov — Cybersecurity</title>
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<script>document.documentElement.classList.add('js');</script>
 <meta name="description" content="Nursultan Kerimkulov — entry-level SOC / security analyst. Home lab with Suricata IDS, Kubernetes and local LLM alert triage; Wazuh SIEM internship.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -274,6 +275,49 @@
 
   footer { padding: 32px 0 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
 
+  /* About */
+  .about { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: start; }
+  .about p { margin: 0 0 14px; }
+  .about .facts { list-style: none; margin: 0; padding: 0; font-size: 15px; }
+  .about .facts li { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .about .facts li:last-child { border-bottom: 0; }
+  .about .card h3 { font-size: 1rem; margin-bottom: 8px; }
+
+  /* Blinking terminal cursor after "$ whoami" */
+  .cursor::after { content: "▍"; margin-left: 2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Scroll-in reveal (only when JS is on, so content is never hidden without it) */
+  .js .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+  .js .reveal.in { opacity: 1; transform: none; }
+
+  /* Back to top */
+  #to-top {
+    position: fixed; right: 20px; bottom: 20px; z-index: 20;
+    width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+    opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .25s, transform .25s;
+  }
+  #to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+  #to-top:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Boot screen, once per visit */
+  #boot {
+    position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+    background: #0a0e14; color: #3fc1a8; cursor: pointer;
+    font: 14px/1.7 "JetBrains Mono", ui-monospace, Consolas, monospace;
+    transition: opacity .35s ease;
+  }
+  #boot.done { opacity: 0; pointer-events: none; }
+  #boot pre { margin: 0; padding: 0 16px; white-space: pre-wrap; min-width: min(420px, 100%); }
+  #boot .dim { color: #5b6b7a; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js .reveal { opacity: 1; transform: none; transition: none; }
+    .cursor::after { animation: none; }
+  }
+
   @media (max-width: 720px) {
     nav .links { display: none; }
     header.hero { padding: 48px 0 36px; }
@@ -284,10 +328,21 @@
     .card { padding: 18px; }
     ol.timeline li { grid-template-columns: 1fr; gap: 2px; }
     .gallery { grid-template-columns: 1fr; }
+    .about { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
+<div id="boot" aria-hidden="true" hidden><pre id="boot-text"></pre></div>
+<script>
+  // show the boot screen before first paint, once per browser session, never with reduced motion
+  (function () {
+    var seen = false;
+    try { seen = sessionStorage.getItem('booted') === '1'; } catch (e) {}
+    if (!seen && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.getElementById('boot').hidden = false;
+  })();
+</script>
+<button id="to-top" type="button" aria-label="Back to top">↑</button>
 <div class="glow a" aria-hidden="true"></div>
 <div class="glow b" aria-hidden="true"></div>
 <canvas id="bg" aria-hidden="true"></canvas>
@@ -296,6 +351,7 @@
   <div class="wrap">
     <a class="brand" href="#top">N. Kerimkulov</a>
     <div class="links">
+      <a href="#about">About</a>
       <a href="#projects">Projects</a>
       <a href="#experience">Experience</a>
       <a href="#skills">Skills</a>
@@ -309,8 +365,8 @@
 <main class="wrap" id="top">
 
   <header class="hero">
-    <div class="eyebrow mono">$ whoami</div>
-    <h1>Nursultan Kerimkulov</h1>
+    <div class="eyebrow mono cursor">$ whoami</div>
+    <h1 data-scramble aria-label="Nursultan Kerimkulov">Nursultan Kerimkulov</h1>
     <p class="lead">
       Cybersecurity candidate with hands-on experience in SIEM deployment (Wazuh, Sysmon),
       network intrusion detection (Suricata) and Python security tooling. I build and run a
@@ -324,6 +380,39 @@
     </div>
     <div class="meta">Chicago, IL · B.S. Computer &amp; Information Science, May 2026</div>
   </header>
+
+  <section id="about">
+    <h2>About</h2>
+    <div class="about">
+      <div>
+        <p>
+          I'm Nursultan, a Computer &amp; Information Science graduate from National Louis University
+          focused on <strong>blue-team work</strong>: detection, log analysis and network security.
+        </p>
+        <p>
+          In my internship I deployed Wazuh with Sysmon, built and tuned detections, tested them with safe
+          attack simulations and wrote triage runbooks. At home, together with a teammate, I run a segmented
+          lab where a Suricata IDS watches the traffic and a local LLM helps triage the alerts every day.
+          We document every step, including what broke and how we fixed it.
+        </p>
+        <p>
+          I like turning noisy data into short answers people can trust, and I try to be honest about limits:
+          in my lab the model explains, but the code decides. If you're hiring for a SOC team,
+          <a href="#contact">let's talk</a>.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Quick facts</h3>
+        <ul class="facts">
+          <li><span>🎓</span><span>B.S. Computer &amp; Information Science, NLU · May 2026 · GPA 3.56</span></li>
+          <li><span>🛡️</span><span>Focus: SOC / blue team: SIEM, IDS, detection engineering</span></li>
+          <li><span>📜</span><span>Google Cybersecurity Professional Certificate</span></li>
+          <li><span>🧪</span><span>Home lab with an IDS and a daily alert report</span></li>
+          <li><span>📍</span><span>Chicago, IL</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
   <section id="projects">
     <h2>Projects</h2>
@@ -668,8 +757,88 @@
 </footer>
 
 <script>
+  // ---- Visual effects: boot screen, name decode, scroll reveal, back-to-top ----
   (function () {
-    var TO = 'nkerimkulov21@gmail.com';
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var GLYPHS = '!<>-_\\/[]{}=+*^?#%$@&~|01';
+
+    // Boot screen: a short terminal "login", about 1.3 s, click to skip
+    var boot = document.getElementById('boot');
+    if (!boot.hidden) {
+      var out = document.getElementById('boot-text');
+      var lines = [
+        '<span class="dim">$</span> ssh guest@sinonar.github.io',
+        '<span class="dim">[*]</span> verifying TLS certificate .......... ok',
+        '<span class="dim">[*]</span> loading modules: siem ids triage ... ok',
+        '<span class="dim">[*]</span> access granted. welcome.'
+      ];
+      var i = 0, timer;
+      var finish = function () {
+        clearInterval(timer);
+        boot.classList.add('done');
+        try { sessionStorage.setItem('booted', '1'); } catch (e) {}
+        setTimeout(function () { boot.hidden = true; }, 400);
+        decode(document.querySelector('[data-scramble]'));
+      };
+      timer = setInterval(function () {
+        if (i < lines.length) out.innerHTML += (i ? '\n' : '') + lines[i++]; // fixed strings only, no user data
+        else finish();
+      }, 260);
+      boot.addEventListener('click', finish);
+    } else {
+      decode(document.querySelector('[data-scramble]'));
+    }
+
+    // "Decrypt" effect: random glyphs settle into the real text from left to right
+    function decode(el) {
+      if (!el || reduce) return;
+      var text = el.getAttribute('aria-label') || el.textContent, frame = 0, total = 45;
+      clearInterval(el._t);
+      el._t = setInterval(function () {
+        frame++;
+        var p = frame / total;
+        el.textContent = text.split('').map(function (ch, k) {
+          if (ch === ' ' || p > k / text.length) return ch;
+          return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        }).join('');
+        if (frame >= total) { el.textContent = text; clearInterval(el._t); }
+      }, 22);
+    }
+    var name = document.querySelector('[data-scramble]');
+    if (name) name.addEventListener('mouseenter', function () { decode(name); });
+
+    // Reveal sections and cards as they scroll into view
+    var targets = document.querySelectorAll('main section > h2, main .card, .about > div, .contact-list a, .gallery figure');
+    if ('IntersectionObserver' in window && !reduce) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        });
+      }, { rootMargin: '0px 0px -8% 0px' });
+      targets.forEach(function (t) { t.classList.add('reveal'); io.observe(t); });
+    }
+
+    // Section headings decode once when they first appear
+    if ('IntersectionObserver' in window) {
+      var hio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { decode(e.target); hio.unobserve(e.target); }
+        });
+      });
+      document.querySelectorAll('main section > h2').forEach(function (h) {
+        h.setAttribute('aria-label', h.textContent);
+        hio.observe(h);
+      });
+    }
+
+    // Back-to-top button
+    var top = document.getElementById('to-top');
+    addEventListener('scroll', function () { top.classList.toggle('show', scrollY > 600); }, { passive: true });
+    top.addEventListener('click', function () { scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); });
+  })();
+
+  (function () {
+    var TO ='nkerimkulov21@gmail.com';
     var KNOWN = { 'linkedin.com': 'LinkedIn', 'github.com': 'GitHub', 'coursera.org': 'Coursera' };
 
     function closeOn(dialog) {
