@@ -50,6 +50,7 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
+    touch-action: pan-y pinch-zoom;
     margin: 0;
     background: var(--bg);
     color: var(--text);
@@ -991,10 +992,14 @@
     var PALETTE = { dark: [null, '255,77,109', '255,181,71', '139,123,255'],
                     light: [null, '225,29,72', '217,119,6', '109,40,217'] };
     var lastT = 0;
-    var HUBS = [[-74,40.7],[-87.6,41.9],[-122.4,37.8],[-118.2,34],[-79.4,43.7],[-99.1,19.4],[-46.6,-23.5],
-      [-0.1,51.5],[8.7,50.1],[4.9,52.4],[18,59.3],[37.6,55.8],[74.6,42.9],[76.9,43.2],[29,41],[55.3,25.2],
-      [72.9,19.1],[103.8,1.35],[114.2,22.3],[116.4,39.9],[127,37.6],[139.7,35.7],[151.2,-33.9],[28,-26.2],
-      [3.4,6.5],[106.8,-6.2]];
+    var HUBS = [[-74,40.7,'New York'],[-87.6,41.9,'Chicago'],[-122.4,37.8,'San Francisco'],[-118.2,34,'Los Angeles'],
+      [-79.4,43.7,'Toronto'],[-99.1,19.4,'Mexico City'],[-46.6,-23.5,'São Paulo'],[-0.1,51.5,'London'],
+      [8.7,50.1,'Frankfurt'],[4.9,52.4,'Amsterdam'],[18,59.3,'Stockholm'],[37.6,55.8,'Moscow'],[74.6,42.9,'Bishkek'],
+      [76.9,43.2,'Almaty'],[29,41,'Istanbul'],[55.3,25.2,'Dubai'],[72.9,19.1,'Mumbai'],[103.8,1.35,'Singapore'],
+      [114.2,22.3,'Hong Kong'],[116.4,39.9,'Beijing'],[127,37.6,'Seoul'],[139.7,35.7,'Tokyo'],[151.2,-33.9,'Sydney'],
+      [28,-26.2,'Johannesburg'],[3.4,6.5,'Lagos'],[106.8,-6.2,'Jakarta']];
+    // interaction state: drag to rotate, inertia afterwards, hover shows city names
+    var drag = null, vL = 0, vP = 0, hover = -1, hubScreen = [], touched = false;
 
     function readColor() {
       var cs = getComputedStyle(root);
@@ -1094,6 +1099,13 @@
         : { fillA: 0.16, fillB: 0.05, rim: 0.55, dotMin: 0.30, dotMax: 0.60, dot: 2.0, arcA: 1.0, arcW: 1.9, pal: PALETTE.light };
       function col(idx) { return idx ? T.pal[idx] : color; }
 
+      // soft atmosphere just outside the rim
+      var atm = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.18);
+      atm.addColorStop(0, 'rgba(' + color + ',' + (dark ? 0.22 : 0.18) + ')');
+      atm.addColorStop(1, 'rgba(' + color + ',0)');
+      ctx.fillStyle = atm;
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.18, 0, Math.PI * 2); ctx.fill();
+
       // sphere body and rim
       var grad = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.1, cx, cy, R);
       grad.addColorStop(0, 'rgba(' + color + ',' + T.fillA + ')');
@@ -1103,8 +1115,13 @@
       ctx.strokeStyle = 'rgba(' + color + ',' + T.rim + ')';
       ctx.lineWidth = 1; ctx.stroke();
 
-      // land dots, fading toward the edge
+      // land dots: the far side shows through faintly, which gives the sphere depth when it turns
       var half = T.dot / 2;
+      ctx.fillStyle = 'rgba(' + color + ',' + (dark ? 0.07 : 0.10) + ')';
+      for (i = 0; i < land.length; i += 2) {
+        var b = view(land[i], R);
+        if (b[2] < 0) ctx.fillRect(cx + b[0] - 0.6, cy - b[1] - 0.6, 1.2, 1.2);
+      }
       for (i = 0; i < land.length; i++) {
         var p = view(land[i], R);
         if (p[2] <= 0) continue;
@@ -1147,8 +1164,94 @@
         ctx.beginPath(); ctx.arc(cx + p2[0], cy - p2[1], rg.r, 0, Math.PI * 2); ctx.stroke();
       }
 
-      lambda += 0.0016 * dt;
+      // city hubs; the one under the pointer gets its name
+      hubScreen = [];
+      for (i = 0; i < HUBS.length; i++) {
+        var hp = view(vec(HUBS[i][0], HUBS[i][1]), R);
+        if (hp[2] <= 0) continue;
+        var hx = cx + hp[0], hy = cy - hp[1];
+        hubScreen.push([i, hx, hy]);
+        ctx.fillStyle = 'rgba(' + color + ',' + (i === hover ? 1 : 0.7) + ')';
+        ctx.beginPath(); ctx.arc(hx, hy, i === hover ? 4 : 2.2, 0, Math.PI * 2); ctx.fill();
+      }
+      if (hover >= 0) {
+        var hh = hubScreen.filter(function (x) { return x[0] === hover; })[0];
+        if (hh) {
+          ctx.font = '600 12px "JetBrains Mono", ui-monospace, monospace';
+          var label = HUBS[hover][2], tw = ctx.measureText(label).width;
+          ctx.fillStyle = dark ? 'rgba(13,17,23,.85)' : 'rgba(255,255,255,.92)';
+          ctx.fillRect(hh[1] + 8, hh[2] - 22, tw + 12, 20);
+          ctx.fillStyle = dark ? '#e6e9ee' : '#14181f';
+          ctx.fillText(label, hh[1] + 14, hh[2] - 8);
+        }
+      }
+
+      // hint under the globe until the first drag (desktop only)
+      if (!touched && w > 900) {
+        ctx.font = '12px "JetBrains Mono", ui-monospace, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(' + color + ',' + (dark ? 0.7 : 0.8) + ')';
+        ctx.fillText('drag to rotate the globe', cx, Math.min(cy + R + 30, h - 18));
+        ctx.textAlign = 'start';
+      }
+
+      // rotation: auto-spin plus whatever momentum the last drag left
+      if (!drag) {
+        lambda += (reduce ? 0 : 0.0016 * dt) + vL * dt;
+        PHI = clampPhi(PHI + vP * dt);
+        var decay = Math.pow(0.94, dt);
+        vL *= decay; vP *= decay;
+      }
     }
+
+    function clampPhi(v) { return Math.max(-1.1, Math.min(1.1, v)); }
+
+    // Is this point on the globe and not on top of page content?
+    function onGlobe(e) {
+      var dx = e.clientX - cx, dy = e.clientY - cy;
+      if (dx * dx + dy * dy > R * R * 1.1) return false;
+      var t = e.target;
+      return !(t.closest && t.closest('a, button, input, textarea, select, label, dialog, nav, p, h1, h2, h3, h4, li, td, th, figure, .card, .btn, .tags, .stats, .pipeline, .contact-list, .about, .meta, .eyebrow, #boot, #to-top'));
+    }
+
+    addEventListener('pointerdown', function (e) {
+      if (!land.length || e.button > 0 || !onGlobe(e)) return;
+      drag = { x: e.clientX, y: e.clientY, t: performance.now() };
+      vL = vP = 0; touched = true;
+      document.documentElement.style.cursor = 'grabbing';
+      if (e.pointerType === 'mouse') e.preventDefault(); // no text selection while dragging
+    });
+    addEventListener('pointermove', function (e) {
+      if (drag) {
+        var dx = e.clientX - drag.x, dy = e.clientY - drag.y, now = performance.now();
+        var frames = Math.max((now - drag.t) / 16.67, 0.5);
+        lambda -= dx / R;
+        PHI = clampPhi(PHI + dy / R);
+        vL = -dx / R / frames; vP = dy / R / frames;
+        drag.x = e.clientX; drag.y = e.clientY; drag.t = now;
+        if (reduce) frame(now);
+        return;
+      }
+      if (e.pointerType !== 'mouse') return;
+      var over = land.length && onGlobe(e);
+      document.documentElement.style.cursor = over ? 'grab' : '';
+      hover = -1;
+      if (over) {
+        for (var i = 0; i < hubScreen.length; i++) {
+          var hx = hubScreen[i][1] - e.clientX, hy = hubScreen[i][2] - e.clientY;
+          if (hx * hx + hy * hy < 144) { hover = hubScreen[i][0]; break; }
+        }
+      }
+      if (reduce) frame(performance.now());
+    });
+    function endDrag() {
+      if (!drag) return;
+      drag = null;
+      document.documentElement.style.cursor = '';
+      if (reduce) vL = vP = 0;
+    }
+    addEventListener('pointerup', endDrag);
+    addEventListener('pointercancel', endDrag); // e.g. the browser took the gesture for vertical scrolling
 
     function loop(now) {
       if (document.hidden) { running = false; return; }
