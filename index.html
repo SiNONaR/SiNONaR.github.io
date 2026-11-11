@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nursultan Kerimkulov — Cybersecurity</title>
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="description" content="Nursultan Kerimkulov — entry-level SOC / security analyst. Home lab with Suricata IDS, Kubernetes and local LLM alert triage; Wazuh SIEM internship.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -206,6 +207,61 @@
   .gallery a:hover { border-color: var(--accent); }
   .gallery figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
 
+  /* Dialogs: contact form and "leaving this site" confirmation */
+  [hidden] { display: none !important; }
+  dialog.modal {
+    width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
+    padding: 0; border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface); color: var(--text);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .35);
+  }
+  dialog.modal::backdrop { background: rgba(5, 10, 16, .55); backdrop-filter: blur(4px); }
+  .modal-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .modal-head h3 { margin: 0; font-size: 1.05rem; flex: 1; }
+  .modal-icon {
+    width: 34px; height: 34px; border-radius: 10px; flex: none;
+    display: grid; place-items: center; background: var(--accent-soft); color: var(--accent);
+  }
+  .modal-icon.warn { background: rgba(217, 119, 6, .15); color: #d97706; }
+  .modal-x { border: 0; background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+  .modal-x:hover { color: var(--text); background: var(--chip); }
+  .modal-body { padding: 20px; }
+  .modal-body p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  .modal-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border); }
+  .modal-foot .btn { cursor: pointer; font: inherit; font-weight: 500; font-size: 14px; }
+  .modal-foot .spacer { margin-right: auto; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .field label span { font-weight: 400; color: var(--muted); }
+  .field input, .field textarea {
+    width: 100%; padding: 10px 12px; border-radius: 10px; font: inherit; font-size: 15px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  }
+  .field textarea { min-height: 120px; resize: vertical; }
+  .field input:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .field .err { display: none; color: #e11d48; font-size: 12px; margin-top: 4px; }
+  .field.invalid .err { display: block; }
+  .field.invalid input, .field.invalid textarea { border-color: #e11d48; }
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+  .review { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; font-size: 14px; }
+  .review .row { display: grid; grid-template-columns: 76px 1fr; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .review .row:last-child { border-bottom: 0; }
+  .review .row b { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding-top: 2px; }
+  .review .row div { overflow-wrap: anywhere; }
+  .review .msg { white-space: pre-wrap; max-height: 180px; overflow: auto; }
+
+  .url-box {
+    font: 13px/1.5 "JetBrains Mono", ui-monospace, monospace; overflow-wrap: anywhere;
+    padding: 12px 14px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--muted);
+  }
+  .url-box mark { background: none; color: var(--text); font-weight: 600; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-top: 12px; }
+  .badge.ok { background: var(--accent-soft); color: var(--accent); }
+  .badge.bad { background: rgba(225, 29, 72, .12); color: #e11d48; }
+  .modal-body .hint { font-size: 12px; color: var(--muted); margin: 14px 0 0; }
+
   /* Contact */
   .contact-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .contact-list a {
@@ -262,9 +318,9 @@
       Looking for an entry-level <strong>SOC / security analyst</strong> role.
     </p>
     <div class="cta">
-      <a class="btn primary" href="mailto:nkerimkulov@gmail.com">Email me</a>
-      <a class="btn" href="https://www.linkedin.com/in/nkerimkulov" target="_blank" rel="noopener">LinkedIn</a>
-      <a class="btn" href="https://github.com/SiNONaR" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn primary" href="mailto:nkerimkulov21@gmail.com" data-contact>Email me</a>
+      <a class="btn" href="https://www.linkedin.com/in/nkerimkulov" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a class="btn" href="https://github.com/SiNONaR" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
     <div class="meta">Chicago, IL · B.S. Computer &amp; Information Science, May 2026</div>
   </header>
@@ -274,7 +330,7 @@
 
     <article class="card">
       <h3>Home Lab: Segmented Network, Kubernetes and IDS with Local LLM Triage</h3>
-      <div class="sub">Built with a teammate · documented as a build log with a troubleshooting file for every step · ongoing · <a href="https://github.com/MrSandwick/homelab-doc" target="_blank" rel="noopener">documentation on GitHub</a></div>
+      <div class="sub">Built with a teammate · documented as a build log with a troubleshooting file for every step · ongoing · <a href="https://github.com/MrSandwick/homelab-doc" target="_blank" rel="noopener noreferrer">documentation on GitHub</a></div>
 
       <div class="stats">
         <div class="stat"><b>~53,000</b><span>Suricata rules (ET Open)</span></div>
@@ -509,7 +565,7 @@
       <div class="card">
         <h3>Certifications</h3>
         <ul class="plain">
-          <li><a href="https://coursera.org/verify/professional-cert/74ENDDBBP5MA" target="_blank" rel="noopener">Google Cybersecurity Professional Certificate</a><small>Google · Coursera · Nov 2025 · 8 courses, incl. SIEM, IDS, Linux, SQL, Python</small></li>
+          <li><a href="https://coursera.org/verify/professional-cert/74ENDDBBP5MA" target="_blank" rel="noopener noreferrer">Google Cybersecurity Professional Certificate</a><small>Google · Coursera · Nov 2025 · 8 courses, incl. SIEM, IDS, Linux, SQL, Python</small></li>
           <li>NASA's Open Science<small>NASA</small></li>
         </ul>
       </div>
@@ -519,19 +575,225 @@
   <section id="contact">
     <h2>Contact</h2>
     <div class="contact-list">
-      <a href="mailto:nkerimkulov@gmail.com"><small>Email</small><span>nkerimkulov@gmail.com</span></a>
-      <a href="https://www.linkedin.com/in/nkerimkulov" target="_blank" rel="noopener"><small>LinkedIn</small><span>in/nkerimkulov</span></a>
-      <a href="https://github.com/SiNONaR" target="_blank" rel="noopener"><small>GitHub</small><span>SiNONaR</span></a>
+      <a href="mailto:nkerimkulov21@gmail.com" data-contact><small>Email</small><span>nkerimkulov21@gmail.com</span></a>
+      <a href="https://www.linkedin.com/in/nkerimkulov" target="_blank" rel="noopener noreferrer"><small>LinkedIn</small><span>in/nkerimkulov</span></a>
+      <a href="https://github.com/SiNONaR" target="_blank" rel="noopener noreferrer"><small>GitHub</small><span>SiNONaR</span></a>
     </div>
   </section>
 
 </main>
+
+<!-- Contact: collects sender + message, shows a review, then hands off to the visitor's own mail service.
+     The site has no backend; nothing is stored or sent from here. -->
+<dialog class="modal" id="contact-dialog" aria-labelledby="contact-title">
+  <form id="contact-form" novalidate>
+    <div class="modal-head">
+      <div class="modal-icon" aria-hidden="true">✉</div>
+      <h3 id="contact-title">Send a message</h3>
+      <button type="button" class="modal-x" data-close aria-label="Close">×</button>
+    </div>
+
+    <div class="modal-body" data-step="1">
+      <div class="field">
+        <label for="c-name">Your name</label>
+        <input id="c-name" name="name" maxlength="80" autocomplete="name" required>
+        <div class="err">Please enter your name.</div>
+      </div>
+      <div class="field">
+        <label for="c-email">Your email <span>so I can reply</span></label>
+        <input id="c-email" name="email" type="email" maxlength="120" autocomplete="email" required>
+        <div class="err">Please enter a valid email address.</div>
+      </div>
+      <div class="field">
+        <label for="c-subject">Subject <span>optional</span></label>
+        <input id="c-subject" name="subject" maxlength="120">
+      </div>
+      <div class="field">
+        <label for="c-message">Message <span id="c-count">0 / 2000</span></label>
+        <textarea id="c-message" name="message" maxlength="2000" required></textarea>
+        <div class="err">Please write at least 10 characters.</div>
+      </div>
+      <div class="hp" aria-hidden="true">
+        <label for="c-website">Leave this field empty</label>
+        <input id="c-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <p class="hint">🔒 This site has no server and stores nothing. After you review the message it opens in your own mail service, and you press Send there.</p>
+    </div>
+
+    <div class="modal-body" data-step="2" hidden>
+      <p>Check the details before sending:</p>
+      <div class="review">
+        <div class="row"><b>From</b><div id="r-from"></div></div>
+        <div class="row"><b>To</b><div>Nursultan Kerimkulov &lt;nkerimkulov21@gmail.com&gt;</div></div>
+        <div class="row"><b>Subject</b><div id="r-subject"></div></div>
+        <div class="row"><b>Message</b><div class="msg" id="r-message"></div></div>
+      </div>
+      <p class="hint">“Send via Gmail” opens <b>mail.google.com</b> in a new tab with this message filled in.</p>
+    </div>
+
+    <div class="modal-foot" data-step="1">
+      <button type="button" class="btn spacer" id="c-copy">Copy email address</button>
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary">Review message</button>
+    </div>
+    <div class="modal-foot" data-step="2" hidden>
+      <button type="button" class="btn spacer" id="c-back">← Edit</button>
+      <button type="button" class="btn" id="c-mailapp">Other mail app</button>
+      <button type="button" class="btn primary" id="c-gmail">Send via Gmail</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Shown before any link that leaves this site -->
+<dialog class="modal" id="leave-dialog" aria-labelledby="leave-title">
+  <div class="modal-head">
+    <div class="modal-icon warn" aria-hidden="true">↗</div>
+    <h3 id="leave-title">You are leaving this site</h3>
+    <button type="button" class="modal-x" data-close aria-label="Close">×</button>
+  </div>
+  <div class="modal-body">
+    <p>This link opens <b id="l-name"></b> in a new tab. Check the address before you continue:</p>
+    <div class="url-box" id="l-url"></div>
+    <span class="badge" id="l-badge"></span>
+    <p class="hint">This site will never ask you for a password or personal data. If a page you reach from here does, close it.</p>
+  </div>
+  <div class="modal-foot">
+    <button type="button" class="btn" data-close autofocus>Stay here</button>
+    <button type="button" class="btn primary" id="l-go">Continue</button>
+  </div>
+</dialog>
 
 <footer>
   <div class="wrap">© 2026 Nursultan Kerimkulov · Chicago, IL</div>
 </footer>
 
 <script>
+  (function () {
+    var TO = 'nkerimkulov21@gmail.com';
+    var KNOWN = { 'linkedin.com': 'LinkedIn', 'github.com': 'GitHub', 'coursera.org': 'Coursera' };
+
+    function closeOn(dialog) {
+      dialog.querySelectorAll('[data-close]').forEach(function (b) {
+        b.addEventListener('click', function () { dialog.close(); });
+      });
+      // click on the dimmed backdrop closes the dialog
+      dialog.addEventListener('click', function (e) { if (e.target === dialog) dialog.close(); });
+    }
+
+    // ---- Leaving-the-site confirmation ----
+    var leave = document.getElementById('leave-dialog'), pending = null;
+    closeOn(leave);
+
+    function siteName(host) {
+      for (var d in KNOWN) if (host === d || host.slice(-d.length - 1) === '.' + d) return KNOWN[d];
+      return host;
+    }
+
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]');
+      if (!a || e.defaultPrevented) return;
+      var url;
+      try { url = new URL(a.href, location.href); } catch (err) { return; }
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+      if (url.origin === location.origin) return;
+      e.preventDefault();
+      pending = url;
+      // build with textContent only, never innerHTML, so a crafted URL cannot inject markup
+      var box = document.getElementById('l-url');
+      box.textContent = '';
+      box.append(url.protocol + '//');
+      var host = document.createElement('mark');
+      host.textContent = url.hostname; // punycode form, so look-alike Unicode domains are exposed
+      box.append(host, url.pathname + url.search + url.hash);
+      document.getElementById('l-name').textContent = siteName(url.hostname);
+      var badge = document.getElementById('l-badge');
+      var secure = url.protocol === 'https:';
+      badge.className = 'badge ' + (secure ? 'ok' : 'bad');
+      badge.textContent = secure ? '🔒 HTTPS: encrypted connection' : '⚠ Not encrypted (HTTP)';
+      document.getElementById('l-go').textContent = 'Continue to ' + siteName(url.hostname);
+      leave.showModal();
+    });
+
+    document.getElementById('l-go').addEventListener('click', function () {
+      if (pending) window.open(pending.href, '_blank', 'noopener,noreferrer');
+      pending = null;
+      leave.close();
+    });
+
+    // ---- Contact form ----
+    var dlg = document.getElementById('contact-dialog');
+    var form = document.getElementById('contact-form');
+    var f = form.elements;
+    closeOn(dlg);
+
+    function step(n) {
+      form.querySelectorAll('[data-step]').forEach(function (el) { el.hidden = el.getAttribute('data-step') !== String(n); });
+    }
+    function clean(s) { return s.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim(); }
+    function oneLine(s) { return clean(s).replace(/[\r\n]+/g, ' '); } // no header injection via name or subject
+    function data() {
+      return {
+        name: oneLine(f.name.value).replace(/[<>"]/g, ''), email: oneLine(f.email.value),
+        subject: oneLine(f.subject.value) || 'Hello from your resume site',
+        message: clean(f.message.value)
+      };
+    }
+    function body(d) {
+      return d.message + '\n\n---\nFrom: ' + d.name + ' <' + d.email + '>\nSent via sinonar.github.io';
+    }
+
+    document.querySelectorAll('[data-contact]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        step(1);
+        dlg.showModal();
+        f.name.focus();
+      });
+    });
+
+    f.message.addEventListener('input', function () {
+      document.getElementById('c-count').textContent = f.message.value.length + ' / 2000';
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (f.website.value) { dlg.close(); return; } // honeypot filled: almost certainly a bot
+      var d = data(), ok = true;
+      [[f.name, d.name.length > 0],
+       [f.email, /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/.test(d.email)],
+       [f.message, d.message.length >= 10]].forEach(function (c) {
+        c[0].closest('.field').classList.toggle('invalid', !c[1]);
+        if (!c[1] && ok) { c[0].focus(); ok = false; }
+      });
+      if (!ok) return;
+      document.getElementById('r-from').textContent = d.name + ' <' + d.email + '>';
+      document.getElementById('r-subject').textContent = d.subject;
+      document.getElementById('r-message').textContent = d.message;
+      step(2);
+    });
+
+    document.getElementById('c-back').addEventListener('click', function () { step(1); });
+
+    document.getElementById('c-gmail').addEventListener('click', function () {
+      var d = data();
+      var q = new URLSearchParams({ view: 'cm', fs: '1', to: TO, su: d.subject, body: body(d) });
+      window.open('https://mail.google.com/mail/?' + q.toString(), '_blank', 'noopener,noreferrer');
+      dlg.close();
+    });
+    document.getElementById('c-mailapp').addEventListener('click', function () {
+      var d = data();
+      location.href = 'mailto:' + TO + '?subject=' + encodeURIComponent(d.subject) + '&body=' + encodeURIComponent(body(d));
+      dlg.close();
+    });
+
+    document.getElementById('c-copy').addEventListener('click', function () {
+      var btn = this;
+      function done(t) { btn.textContent = t; setTimeout(function () { btn.textContent = 'Copy email address'; }, 1800); }
+      if (navigator.clipboard) navigator.clipboard.writeText(TO).then(function () { done('Copied ✓'); }, function () { done(TO); });
+      else done(TO);
+    });
+  })();
+
   (function () {
     var root = document.documentElement;
     try {
