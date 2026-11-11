@@ -2,7 +2,7 @@
 
 **Entry-level SOC / Security Analyst** · Chicago, IL · B.S. Computer & Information Science (May 2026)
 
-[**🌐 Live site**](https://sinonar.github.io) · [LinkedIn](https://www.linkedin.com/in/nkerimkulov) · [Google Cybersecurity Certificate](https://coursera.org/verify/professional-cert/74ENDDBBP5MA) · [Home lab docs](https://github.com/MrSandwick/homelab-doc)
+[**Live site**](https://sinonar.github.io) · [LinkedIn](https://www.linkedin.com/in/nkerimkulov) · [Google Cybersecurity Certificate](https://coursera.org/verify/professional-cert/74ENDDBBP5MA) · [Home lab docs](https://github.com/MrSandwick/homelab-doc)
 
 [![Preview of the resume site](img/site-preview.jpg)](https://sinonar.github.io)
 
@@ -12,7 +12,7 @@ A one-page portfolio that shows what I have actually built and investigated: a h
 
 ## What's on the site
 
-### 🛡️ Home lab: segmented network, Kubernetes and IDS with local LLM triage
+### Home lab: segmented network, Kubernetes and IDS with local LLM triage
 *Built with a teammate. My parts are listed below.*
 
 | | |
@@ -25,7 +25,7 @@ A one-page portfolio that shows what I have actually built and investigated: a h
 | **Finding** | The IDS caught scanning of a newly exposed public web server (`/.env`, `wp-config`, GraphQL probes) and showed that it sat in the Admin VLAN. That led to a DMZ VLAN plan |
 | **GPU node** | Laptop added as a Kubernetes worker with NVIDIA Container Toolkit and the device plugin |
 
-### 🔎 Cybersecurity internship: National Louis University (Jan to Apr 2026)
+### Cybersecurity internship: National Louis University (Jan to Apr 2026)
 - Deployed a **Wazuh SIEM** with agents on Windows and Linux, plus **Sysmon** for endpoint telemetry
 - Built and tuned three detections and validated each with a safe attack simulation:
 
@@ -38,7 +38,7 @@ A one-page portfolio that shows what I have actually built and investigated: a h
 - Debugged custom rules (`local_rules.xml`, `<if_sid>` chaining) with `wazuh-logtest`
 - Triaged the alerts like a Tier-1 analyst and wrote **triage runbooks**; screenshots from the lab are on the site
 
-### 🧰 Also on the site
+### Also on the site
 - **Python Network Reconnaissance Toolkit:** TCP port scanner with banner grabbing, and a ping-sweep host discovery tool
 - **Log analysis and brute-force detection tool:** parses Linux auth logs and flags repeated failed logins
 - **Skills:** Wazuh, Sysmon, Suricata, MITRE ATT&CK · TCP/IP, VLANs, ACLs, VPN, FreeRADIUS · Linux, Docker, Kubernetes, Prometheus, Grafana · Python, SQL
@@ -46,7 +46,7 @@ A one-page portfolio that shows what I have actually built and investigated: a h
 
 ---
 
-## 🔐 Security built into the site
+## Security built into the site
 
 The site is small, but it is built the way I would want a security-minded page to be:
 
@@ -62,7 +62,7 @@ The site is small, but it is built the way I would want a security-minded page t
 
 ---
 
-## ⚙️ How it is built
+## How it is built
 
 - **One static file:** `index.html` with inline CSS and JavaScript, no framework and no build step
 - **Background:** a rotating dot-matrix globe with animated "attack" arcs, drawn on `<canvas>`. Land shapes come from [world-atlas](https://github.com/topojson/world-atlas) via [topojson-client](https://github.com/topojson/topojson-client). The arcs are random and decorative, not real threat data
@@ -86,6 +86,6 @@ python -m http.server 8000   # then open http://localhost:8000
 
 ---
 
-## 📬 Contact
+## Contact
 
 Open to **entry-level SOC / security analyst** roles. The quickest way to reach me is the **Email me** button on the [site](https://sinonar.github.io) or [LinkedIn](https://www.linkedin.com/in/nkerimkulov).

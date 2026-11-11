@@ -279,6 +279,7 @@
   .about { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: start; }
   .about p { margin: 0 0 14px; }
   .about .facts { list-style: none; margin: 0; padding: 0; font-size: 15px; }
+  .about .facts b { flex: none; width: 86px; color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding-top: 3px; }
   .about .facts li { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
   .about .facts li:last-child { border-bottom: 0; }
   .about .card h3 { font-size: 1rem; margin-bottom: 8px; }
@@ -404,11 +405,11 @@
       <div class="card">
         <h3>Quick facts</h3>
         <ul class="facts">
-          <li><span>🎓</span><span>B.S. Computer &amp; Information Science, NLU · May 2026 · GPA 3.56</span></li>
-          <li><span>🛡️</span><span>Focus: SOC / blue team: SIEM, IDS, detection engineering</span></li>
-          <li><span>📜</span><span>Google Cybersecurity Professional Certificate</span></li>
-          <li><span>🧪</span><span>Home lab with an IDS and a daily alert report</span></li>
-          <li><span>📍</span><span>Chicago, IL</span></li>
+          <li><b>Degree</b><span>B.S. Computer &amp; Information Science, NLU · May 2026 · GPA 3.56</span></li>
+          <li><b>Focus</b><span>Focus: SOC / blue team: SIEM, IDS, detection engineering</span></li>
+          <li><b>Certificate</b><span>Google Cybersecurity Professional Certificate</span></li>
+          <li><b>Lab</b><span>Home lab with an IDS and a daily alert report</span></li>
+          <li><b>Location</b><span>Chicago, IL</span></li>
         </ul>
       </div>
     </div>
@@ -461,7 +462,7 @@
           <tbody>
             <tr><td class="mono">qwen2.5:3b</td><td>24 s</td><td>2 / 34 / 4</td><td>Fast, but rated HeartBleed only “worth a look” and flagged a file-hosting domain as suspicious</td></tr>
             <tr><td class="mono">phi4-mini</td><td>33 s</td><td>21 / 5 / 14</td><td>Alarmist and inconsistent; flagged everything already triaged by hand</td></tr>
-            <tr><td class="mono"><b>gemma3:4b</b> ✓</td><td>69 s</td><td>2 / 33 / 5</td><td>Most restrained: “suspicious” only on the two real attack-style rows (HeartBleed, Zmap scan)</td></tr>
+            <tr><td class="mono"><b>gemma3:4b</b> (chosen)</td><td>69 s</td><td>2 / 33 / 5</td><td>Most restrained: “suspicious” only on the two real attack-style rows (HeartBleed, Zmap scan)</td></tr>
           </tbody>
         </table>
       </div>
@@ -677,7 +678,7 @@
 <dialog class="modal" id="contact-dialog" aria-labelledby="contact-title">
   <form id="contact-form" novalidate>
     <div class="modal-head">
-      <div class="modal-icon" aria-hidden="true">✉</div>
+      <div class="modal-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
       <h3 id="contact-title">Send a message</h3>
       <button type="button" class="modal-x" data-close aria-label="Close">×</button>
     </div>
@@ -706,7 +707,7 @@
         <label for="c-website">Leave this field empty</label>
         <input id="c-website" name="website" tabindex="-1" autocomplete="off">
       </div>
-      <p class="hint">🔒 This site has no server and stores nothing. After you review the message it opens in your own mail service, and you press Send there.</p>
+      <p class="hint">This site has no server and stores nothing. After you review the message it opens in your own mail service, and you press Send there.</p>
     </div>
 
     <div class="modal-body" data-step="2" hidden>
@@ -736,7 +737,7 @@
 <!-- Shown before any link that leaves this site -->
 <dialog class="modal" id="leave-dialog" aria-labelledby="leave-title">
   <div class="modal-head">
-    <div class="modal-icon warn" aria-hidden="true">↗</div>
+    <div class="modal-icon warn" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></div>
     <h3 id="leave-title">You are leaving this site</h3>
     <button type="button" class="modal-x" data-close aria-label="Close">×</button>
   </div>
@@ -878,7 +879,7 @@
       var badge = document.getElementById('l-badge');
       var secure = url.protocol === 'https:';
       badge.className = 'badge ' + (secure ? 'ok' : 'bad');
-      badge.textContent = secure ? '🔒 HTTPS: encrypted connection' : '⚠ Not encrypted (HTTP)';
+      badge.textContent = secure ? 'HTTPS: encrypted connection' : 'Not encrypted (HTTP)';
       document.getElementById('l-go').textContent = 'Continue to ' + siteName(url.hostname);
       leave.showModal();
     });
@@ -958,7 +959,7 @@
     document.getElementById('c-copy').addEventListener('click', function () {
       var btn = this;
       function done(t) { btn.textContent = t; setTimeout(function () { btn.textContent = 'Copy email address'; }, 1800); }
-      if (navigator.clipboard) navigator.clipboard.writeText(TO).then(function () { done('Copied ✓'); }, function () { done(TO); });
+      if (navigator.clipboard) navigator.clipboard.writeText(TO).then(function () { done('Copied'); }, function () { done(TO); });
       else done(TO);
     });
   })();
